@@ -1,11 +1,13 @@
 import express from "express"
-import dotenv from "dotenv"
 import redis from "./redisClient.js"
 
 import handleTicketCreato from "./handlers/ticketCreato.js"
 import handleOrdineCreato from "./handlers/ordineCreato.js"
+import handleUserAggiornato from "./handlers/userAggiornato.js"
+import handleOrdineCompletato from "./handlers/ordineCompletato.js"
+import handleOrdineAnnullato from "./handlers/ordineAnnullato.js"
+import handleTicketCancellato from "./handlers/ticketCancellato.js"
 
-dotenv.config()
 const app = express()
 app.use(express.json())
 
@@ -18,15 +20,22 @@ app.post("/publish", async (req, res) => {
 
 // Sottoscrizioni
 const subscriber = redis.duplicate()
-const canali = ["ticket-creato", "ordine-creato"]
-
+const canali = ["user-aggiornato", "ticket-creato", "ticket-cancellato", "ordine-creato", "ordine-annullato", "ordine-completato"]
 subscriber.subscribe(canali, () => {
     console.log("Iscritto ai canali:", canali.join(", "))
 })
 
-subscriber.on("message", (channel, message) => {
-    if (channel === "ticket-creato") handleTicketCreato(message)
-    if (channel === "ordine-creato") handleOrdineCreato(message)
+subscriber.on("message", async (channel, message) => {
+    try {
+        if (channel === "ticket-creato") await handleTicketCreato(message)
+        else if (channel === "ordine-creato") await handleOrdineCreato(message)
+        else if (channel === "user-aggiornato") await handleUserAggiornato(message)
+        else if (channel === "ordine-completato") await handleOrdineCompletato(message)
+        else if (channel === "ordine-annullato") await handleOrdineAnnullato(message)
+        else if (channel === "ticket-cancellato") await handleTicketCancellato(message)
+    } catch (err) {
+        console.error(`❌ Errore handler per ${channel}:`, err)
+    }
 })
 
 const PORT = process.env.PORT || 3004
