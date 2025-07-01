@@ -10,14 +10,14 @@ const redis = new Redis({
     password: process.env.REDIS_PASSWORD || undefined,
     retryStrategy(times) {
         const delay = Math.min(times * 50, 2000)
-        console.log(`🔁 Tentativo riconnessione Redis Nr${times} in ${delay}ms`)
+        console.log(`Tentativo riconnessione Redis Nr${times} in ${delay}ms`)
         return delay
     },
     connectTimeout: 5000
 })
 
 redis.on("connect", () => {
-    console.log("✅ Connesso a Redis!")
+    console.log("[redis_service] Connesso a Redis!")
 })
 
 redis.on("error", err => {

@@ -11,7 +11,7 @@ import handleTicketCancellato from "./handlers/ticketCancellato.js"
 const app = express()
 app.use(express.json())
 
-// Pubblicazione manuale
+// Pubblicazione
 app.post("/publish", async (req, res) => {
     const { channel, message } = req.body
     await redis.publish(channel, JSON.stringify(message))
